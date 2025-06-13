@@ -1,0 +1,1292 @@
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.02
+OBJECT MODULE PLACED IN Them.OBJ
+ASSEMBLER INVOKED BY: F:\keil-4\C51\BIN\A51.EXE Them.asm SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     ; Ó²¼þÁ¬½Ó¶¨Òå ; LCD¿ØÖÆÏß RS
+                       2     ; Ó²¼þÁ¬½Ó¶¨Òå
+                       3     ; LCD¿ØÖÆÏß
+  00A5                 4     RS      BIT P2.5     ; ¼Ä´æÆ÷Ñ¡Ôñ
+  00A6                 5     RW      BIT P2.6     ; ¶ÁÐ´¿ØÖÆ
+  00A7                 6     EN      BIT P2.7     ; Ê¹ÄÜÐÅºÅ
+                       7     ; LCDÊ¾ÝÏß
+  00B0                 8     LCD_DAT EQU P3       ; P1¶Ë¿ÚÁ¬½ÓD0-D7
+                       9     ; DS18B20
+  00A4                10     DQ      BIT P2.4     ; µ¥×ÜÏßÊ¾ÝÒ½Å
+  00A3                11     ALARM   BIT P2.3     ; ±¨¾¯ÐÅºÅÊä³öÒ½Å
+                      12     ; °´¼ü¶¨Òå
+  0090                13     K1      BIT P1.0     ; Ä£Ê½ÇÐ»»
+  0091                14     K2      BIT P1.1     ; ¼Ó1/²é¿´ÉÏÏÞ
+  0092                15     K3      BIT P1.2     ; ¼õ1/²é¿´ÏÂÏÞ
+  0093                16     K4      BIT P1.3     ; Õ¸ºÇÐ»»/°´¼üÒô¿ª¹Ø
+                      17     ; ·äÃùÆ÷
+  00A2                18     BEEP    BIT P2.2     ; °´¼üÒôÊä³ö
+                      19     
+                      20     ; ±äÁ¿¶¨Òå
+  0030                21     TEMP_L  DATA 30H     ; ÎÂ¶ÈµÍ×Ö½Ú
+  0031                22     TEMP_H  DATA 31H     ; ÎÂ¶È¸ß×Ö½Ú
+  0032                23     DIGIT0  DATA 32H     ; °ÙÎ»Ê×Ö
+  0033                24     DIGIT1  DATA 33H     ; Ê®Î»Ê×Ö
+  0034                25     DIGIT2  DATA 34H     ; ¸öÎ»Ê×Ö
+  0035                26     DIGIT3  DATA 35H     ; Ð¡ÊÎ»Ê×Ö
+  0036                27     SIGN    DATA 36H     ; ÎÂ¶È·ûºÅ(0=Õ, 1=¸º)
+  0042                28     OLD_MODE DATA 42H    ; ±£´æÖ®Ç°µÄÉèÖÃÄ£Ê½£¨0=Õ³£,1=ÉÏÏÞ,2=ÏÂÏÞ£©
+  0043                29     KEY_TIMER   DATA 43H    ; °´¼ü¼ÆÊ±Æ÷
+                      30     
+                      31     ; ±¨¾¯ÉÏÏÂÏÞ
+  0037                32     TEMP_HIGH_L DATA 37H ; ÉÏÏÞÎÂ¶ÈµÍ×Ö½Ú
+  0038                33     TEMP_HIGH_H DATA 38H ; ÉÏÏÞÎÂ¶È¸ß×Ö½Ú
+  0039                34     TEMP_LOW_L  DATA 39H ; ÏÂÏÞÎÂ¶ÈµÍ×Ö½Ú
+  003A                35     TEMP_LOW_H  DATA 3AH ; ÏÂÏÞÎÂ¶È¸ß×Ö½Ú
+                      36     
+  0044                37     RAW_TEMP_H  DATA 44H     ; Ô­Ê¼¸ß×Ö½Ú£¨²¹Âë£¬±¨¾¯×¨ÓÃ£©
+  0045                38     RAW_TEMP_L  DATA 45H     ; Ô­Ê¼µÍ×Ö½Ú£¨²¹Âë£¬±¨¾¯×¨ÓÃ£©
+                      39     
+                      40     ; Ä£Ê½±êÖ¾ºÍ×´Ì¬
+  003B                41     MODE    DATA 3BH     ; 0=Õ³£,1=ÉèÉÏÏÞ,2=ÉèÏÂÏÞ
+  003C                42     BEEP_FLAG DATA 3CH   ; °´¼üÒô±êÖ¾ (0=¹Ø,1=¿ª)
+  003D                43     VIEW_MODE DATA 3DH   ; ²é¿´Ä£Ê½ (0=Õ³£,1=¿´ÉÏ,2=¿´ÏÂ)
+  003E                44     VIEW_CNT DATA 3EH    ; ²é¿´Ä£Ê½¼ÆÊÆ÷
+                      45     
+                      46     ; ÉèÖÃÄ£Ê½ÁÙÊ±±äÁ¿
+  003F                47     SET_TEMP_L DATA 3FH  ; ÉèÖÃÎÂ¶ÈµÍ×Ö½Ú
+  0040                48     SET_TEMP_H DATA 40H  ; ÉèÖÃÎÂ¶È¸ß×Ö½Ú
+  0041                49     SET_SIGN   DATA 41H  ; ÉèÖÃ·ûºÅ
+                      50     
+                      51     ; ³ÌÐòÈë¿Ú
+0000                  52     ORG 0000H
+0000 020100           53         LJMP MAIN
+                      54     
+                      55     ; Ö÷³ÌÐò
+0100                  56     ORG 0100H
+0100                  57     MAIN:
+0100 758160           58         MOV SP, #60H      ; ÉèÖÃ¶ÑÕ»Ö¸Õë
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE     2
+
+                      59         ; ³õÊ¼»¯±äÁ¿
+0103 753B00           60         MOV MODE, #0       ; Õ³£Ä£Ê½
+0106 754200           61             MOV OLD_MODE, #0   ; Ìí¼ÓOLD_MODE³õÊ¼»¯
+0109 753C01           62         MOV BEEP_FLAG, #1  ; Ä¬ÈÏ¿ªÆô°´¼üÒô
+010C 753D00           63         MOV VIEW_MODE, #0  ; Õ³£ÏÔÊ¾
+                      64     
+010F C2A3             65             CLR ALARM   ; Çå³±¨¾¯Êä³ö
+0111 C2A2             66         CLR BEEP    ; ¹Ø±Õ·äÃùÆ÷
+                      67     
+                      68         ; ³õÊ¼»¯±¨¾¯ÉÏÏÂÏÞ (Ä¬ÈÏÉÏÏÞ38¡ãC, ÏÂÏÞ-12¡ãC)
+0113 753760           69         MOV TEMP_HIGH_L, #60H  ; 38¡ãC: 0011 1000 0000 -> 0380H
+0116 753802           70         MOV TEMP_HIGH_H, #02H  ; ¸ß×Ö½Ú02H, µÍ×Ö½Ú60H
+0119 753940           71         MOV TEMP_LOW_L, #040H  ; -12¡ãC: 1111 0100 0000 -> F40H -> ²¹Âë FFC0H
+011C 753AFF           72         MOV TEMP_LOW_H, #0FFH  ; ¸ß×Ö½ÚFFH, µÍ×Ö½ÚC0H
+011F 754300           73             MOV KEY_TIMER, #0   ; ³õÊ¼»¯°´¼ü¼ÆÊ±Æ÷
+                      74         
+0122 12057C           75         LCALL LCD_INIT    ; ³õÊ¼»¯LCD
+0125 1205A8           76         LCALL LCD_CLEAR   ; ÇåÆÁ
+                      77         
+                      78         ; ÏÔÊ¾±êÌâ
+0128 90029F           79         MOV DPTR, #TEXT_TITLE
+012B 1205AE           80         LCALL LCD_WRITE_STRING
+                      81         
+012E                  82     LOOP:
+                      83         ; ¶ÁÈ¡ÎÂ¶È (½öÔÚÕ³£Ä£Ê½ÏÂ)
+012E E53B             84         MOV A, MODE
+0130 7019             85         JNZ SKIP_READ  ; ÉèÖÃÄ£Ê½ÏÂÌø¹ÎÂ¶È¶ÁÈ¡
+0132 120602           86         LCALL DS18B20_READ_TEMP
+                      87         ; ¼ì²é¶ÁÈ¡ÊÇ·ñ³É¹¦
+0135 4006             88         JC READ_FAIL
+0137 120637           89         LCALL CONVERT_TEMP      ; ×ª»»ÎÂ¶ÈÖµÎªÊ×Ö
+013A 0201BF           90         LJMP DISPLAY
+013D                  91     READ_FAIL:
+                      92         ; ÏÔÊ¾´íÎóÐÅÏ¢
+013D 74C0             93         MOV A, #0C0H
+013F 12058C           94         LCALL LCD_CMD
+0142 9002AE           95         MOV DPTR, #TEXT_ERROR
+0145 1205AE           96         LCALL LCD_WRITE_STRING
+0148 020250           97         LJMP KEY_HANDLE
+                      98     
+014B                  99     SKIP_READ:
+                     100         ; ÉèÖÃÄ£Ê½ÏÂÖ±½ÓÏÔÊ¾
+014B 0201BF          101         LJMP DISPLAY
+                     102     
+014E                 103     DISP_NORMAL:
+                     104         ; Õ³£Ä£Ê½ÏÔÊ¾
+014E E53D            105         MOV A, VIEW_MODE
+0150 6009            106         JZ DISP_CURRENT   ; 0=ÏÔÊ¾µ±Ç°ÎÂ¶È
+0152 14              107         DEC A
+0153 6041            108         JZ DISP_HIGH      ; 1=ÏÔÊ¾ÉÏÏÞ
+0155 14              109         DEC A
+0156 6074            110         JZ DISP_LOW       ; 2=ÏÔÊ¾ÏÂÏÞ
+0158 020250          111         LJMP KEY_HANDLE
+                     112     
+015B                 113     DISP_CURRENT:
+015B 74C0            114         MOV A, #0C0H
+015D 12058C          115         LCALL LCD_CMD
+0160 7810            116         MOV R0, #16
+0162 7420            117         MOV A, #' '
+0164                 118     CLEAR_LOOP:
+0164 12059A          119         LCALL LCD_DATA
+0167 D8FB            120         DJNZ R0, CLEAR_LOOP    
+0169 74C0            121         MOV A, #0C0H
+016B 12058C          122         LCALL LCD_CMD
+016E 120689          123         LCALL DISPLAY_TEMP
+0171 020250          124         LJMP KEY_HANDLE
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE     3
+
+                     125     
+0174                 126     DISP_SET_HIGH:
+                     127         ; ÉÏÏÞÉèÖÃÄ£Ê½ÏÔÊ¾
+0174 74C0            128         MOV A, #0C0H
+0176 12058C          129         LCALL LCD_CMD
+0179 9002BC          130         MOV DPTR, #TEXT_SET_HIGH
+017C 1205AE          131         LCALL LCD_WRITE_STRING
+                     132         ; ÏÔÊ¾µ±Ç°ÉèÖÃÖµ
+017F 74C6            133         MOV A, #0C6H
+0181 12058C          134         LCALL LCD_CMD
+0184 854031          135         MOV TEMP_H, SET_TEMP_H
+0187 853F30          136         MOV TEMP_L, SET_TEMP_L
+018A 854136          137         MOV SIGN, SET_SIGN
+018D 120637          138         LCALL CONVERT_TEMP
+0190 120689          139         LCALL DISPLAY_TEMP
+0193 020250          140         LJMP KEY_HANDLE
+                     141     
+0196                 142     DISP_HIGH:
+                     143         ; ÏÔÊ¾ÉÏÏÞÎÂ¶È
+0196 74C0            144         MOV A, #0C0H
+0198 12058C          145         LCALL LCD_CMD
+019B 9002BC          146         MOV DPTR, #TEXT_SET_HIGH
+019E 1205AE          147         LCALL LCD_WRITE_STRING
+                     148         ; ±£´æµ±Ç°ÎÂ¶ÈºÍ·ûºÅ
+01A1 E531            149         MOV A, TEMP_H
+01A3 C0E0            150         PUSH ACC
+01A5 E530            151         MOV A, TEMP_L
+01A7 C0E0            152         PUSH ACC
+01A9 E536            153         MOV A, SIGN
+01AB C0E0            154         PUSH ACC
+                     155         ; Ê¹ÓÃÉÏÏÞÎÂ¶È
+01AD 853831          156         MOV TEMP_H, TEMP_HIGH_H
+01B0 853730          157         MOV TEMP_L, TEMP_HIGH_L
+01B3 753600          158         MOV SIGN, #0
+01B6 E538            159         MOV A, TEMP_HIGH_H
+01B8 5480            160         ANL A, #80H
+01BA 6078            161         JZ POS_HIGH
+01BC 753601          162         MOV SIGN, #1
+                     163     
+01BF                 164     DISPLAY:
+                     165         ; ¸ù¾ÝÄ£Ê½Ñ¡ÔñÏÔÊ¾ÄÚÈÝ
+01BF E53B            166         MOV A, MODE
+01C1 608B            167         JZ DISP_NORMAL   ; 0=Õ³£Ä£Ê½
+01C3 14              168         DEC A
+01C4 60AE            169         JZ DISP_SET_HIGH ; 1=ÉèÉÏÏÞ
+01C6 14              170         DEC A
+01C7 604A            171         JZ DISP_SET_LOW  ; 2=ÉèÏÂÏÞ
+01C9 020250          172         LJMP KEY_HANDLE
+                     173     
+01CC                 174     DISP_LOW:
+                     175         ; ÏÔÊ¾ÏÂÏÞÎÂ¶È
+01CC 74C0            176         MOV A, #0C0H
+01CE 12058C          177         LCALL LCD_CMD
+01D1 9002C3          178         MOV DPTR, #TEXT_SET_LOW
+01D4 1205AE          179         LCALL LCD_WRITE_STRING
+                     180         
+                     181         ; ±£´æµ±Ç°ÎÂ¶ÈºÍ·ûºÅ
+01D7 E531            182         MOV A, TEMP_H
+01D9 C0E0            183         PUSH ACC
+01DB E530            184         MOV A, TEMP_L
+01DD C0E0            185         PUSH ACC
+01DF E536            186         MOV A, SIGN
+01E1 C0E0            187         PUSH ACC
+                     188         
+                     189         ; ¼ÓÔØÏÂÏÞÎÂ¶È
+01E3 853A31          190         MOV TEMP_H, TEMP_LOW_H
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE     4
+
+01E6 853930          191         MOV TEMP_L, TEMP_LOW_L
+                     192         
+                     193         ; ÕÈ·ÅÐ¶ÏÏÂÏÞÎÂ¶ÈµÄ·ûºÅ
+01E9 E53A            194         MOV A, TEMP_LOW_H
+01EB 5480            195         ANL A, #80H
+01ED 6005            196         JZ POS_LOW_DISP
+01EF 753601          197         MOV SIGN, #1      ; ¸ºÎÂ¶È
+01F2 8003            198         SJMP CONV_LOW
+01F4                 199     POS_LOW_DISP:
+01F4 753600          200         MOV SIGN, #0      ; ÕÎÂ¶È
+01F7                 201     CONV_LOW:
+01F7 120637          202         LCALL CONVERT_TEMP
+                     203         
+                     204         ; ÏÔÊ¾ÎÂ¶ÈÖµ
+01FA 74C6            205         MOV A, #0C6H
+01FC 12058C          206         LCALL LCD_CMD
+01FF 120689          207         LCALL DISPLAY_TEMP
+                     208         
+                     209         ; »Ö¸´Ô­Öµ
+0202 D0E0            210         POP ACC
+0204 F536            211         MOV SIGN, A
+0206 D0E0            212         POP ACC
+0208 F530            213         MOV TEMP_L, A
+020A D0E0            214         POP ACC
+020C F531            215         MOV TEMP_H, A
+                     216         
+                     217         ; ÖØÐÂ×ª»»µ±Ç°ÎÂ¶È
+020E 120637          218         LCALL CONVERT_TEMP
+0211 803D            219         SJMP KEY_HANDLE
+                     220     
+0213                 221     DISP_SET_LOW:
+                     222         ; ÏÂÏÞÉèÖÃÄ£Ê½ÏÔÊ¾
+0213 74C0            223         MOV A, #0C0H
+0215 12058C          224         LCALL LCD_CMD
+0218 9002C3          225         MOV DPTR, #TEXT_SET_LOW
+021B 1205AE          226         LCALL LCD_WRITE_STRING
+                     227         ; ÏÔÊ¾µ±Ç°ÉèÖÃÖµ
+021E 74C6            228         MOV A, #0C6H
+0220 12058C          229         LCALL LCD_CMD
+0223 854031          230         MOV TEMP_H, SET_TEMP_H
+0226 853F30          231         MOV TEMP_L, SET_TEMP_L
+0229 854136          232         MOV SIGN, SET_SIGN
+022C 120637          233         LCALL CONVERT_TEMP
+022F 120689          234         LCALL DISPLAY_TEMP
+0232 801C            235         SJMP KEY_HANDLE
+0234                 236     POS_HIGH:
+0234 120637          237         LCALL CONVERT_TEMP
+                     238         ; ÏÔÊ¾ÎÂ¶ÈÖµ
+0237 74C6            239         MOV A, #0C6H
+0239 12058C          240         LCALL LCD_CMD
+023C 120689          241         LCALL DISPLAY_TEMP
+                     242         ; »Ö¸´Ô­Öµ
+023F D0E0            243         POP ACC
+0241 F536            244         MOV SIGN, A
+0243 D0E0            245         POP ACC
+0245 F530            246         MOV TEMP_L, A
+0247 D0E0            247         POP ACC
+0249 F531            248         MOV TEMP_H, A
+                     249         ; ÖØÐÂ×ª»»µ±Ç°ÎÂ¶ÈÒÔ±ÜÃâ²ÐÁô
+024B 120637          250         LCALL CONVERT_TEMP
+024E 8000            251         SJMP KEY_HANDLE
+                     252     
+                     253     
+                     254     
+0250                 255     KEY_HANDLE:
+                     256         ; °´¼üÉ¨Ãè
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE     5
+
+0250 1202D4          257         LCALL KEY_SCAN1
+0253 1203D9          258         LCALL KEY_SCAN2
+0256 12040E          259         LCALL KEY_SCAN3
+0259 120443          260         LCALL KEY_SCAN4
+                     261         
+                     262         ; ±¨¾¯¼ì²é
+025C 12053D          263         LCALL CHECK_ALARM
+                     264         
+                     265         ; ÐÞ¸Ä£º½öÔÚÕ³£Ä£Ê½ÏÂ´¦Àí²é¿´Ä£Ê½¼ÆÊ
+025F E53B            266         MOV A, MODE
+0261 702D            267         JNZ SKIP_VIEW_CNT
+                     268         
+                     269         ; ²é¿´Ä£Ê½¼ÆÊ
+0263 E53D            270         MOV A, VIEW_MODE
+0265 6029            271         JZ SKIP_VIEW_CNT
+0267 E53E            272         MOV A, VIEW_CNT
+0269 6020            273         JZ RESET_VIEW
+026B 153E            274         DEC VIEW_CNT
+026D 8021            275         SJMP DELAY_LOOP
+                     276     
+026F                 277     POS_LOW:
+026F 120637          278         LCALL CONVERT_TEMP
+                     279         ; ÏÔÊ¾ÎÂ¶ÈÖµ
+0272 74C6            280         MOV A, #0C6H
+0274 12058C          281         LCALL LCD_CMD
+0277 120689          282         LCALL DISPLAY_TEMP
+                     283         ; »Ö¸´Ô­Öµ
+027A D0E0            284         POP ACC
+027C F536            285         MOV SIGN, A
+027E D0E0            286         POP ACC
+0280 F530            287         MOV TEMP_L, A
+0282 D0E0            288         POP ACC
+0284 F531            289         MOV TEMP_H, A
+                     290         ; ÖØÐÂ×ª»»µ±Ç°ÎÂ¶ÈÒÔ±ÜÃâ²ÐÁô
+0286 120637          291         LCALL CONVERT_TEMP
+0289 80C5            292         SJMP KEY_HANDLE
+028B                 293     RESET_VIEW:
+028B 753D00          294         MOV VIEW_MODE, #0  ; ·µ»ØÕ³£ÏÔÊ¾
+028E 8000            295         SJMP DELAY_LOOP
+                     296     
+0290                 297     SKIP_VIEW_CNT:
+                     298         ; ÉèÖÃÄ£Ê½ÏÂ²»´¦Àí²é¿´Ä£Ê½¼ÆÊ
+                     299         
+0290                 300     DELAY_LOOP:
+                     301         ; ÑÓÊ±Ô¼0.5Ãë
+0290 780A            302         MOV R0, #10
+0292                 303     DELAY_500MS:
+0292 7932            304         MOV R1, #50
+0294 7AFA            305         MOV R2, #250
+0296 DAFE            306         DJNZ R2, $
+0298 D9FA            307         DJNZ R1, $-4
+029A D8F6            308         DJNZ R0, $-8
+                     309         
+029C 02012E          310         LJMP LOOP
+                     311     
+                     312     ; ÎÄ±¾¶¨Òå
+029F 54656D70        313     TEXT_TITLE: DB "Temperature:", 0
+02A3 65726174                
+02A7 7572653A                
+02AB 00                      
+02AC 4300            314     TEXT_DEG:   DB "C", 0
+02AE 4572726F        315     TEXT_ERROR: DB "Error!       ", 0
+02B2 72212020                
+02B6 20202020                
+02BA 2000                    
+                     316     ;TEXT_HIGH:  DB "HTemp:", 0
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE     6
+
+                     317     ;TEXT_LOW:   DB "LTemp: ", 0
+02BC 4854656D        318     TEXT_SET_HIGH: DB "HTemp:", 0
+02C0 703A00                  
+02C3 4C54656D        319     TEXT_SET_LOW:  DB "LTemp: ", 0
+02C7 703A2000                
+02CB 4354656D        320     TEXT_NORMAL:   DB "CTemp: ", 0
+02CF 703A2000                
+                     321     
+                     322     ;===== ÐÞ¸´ºóµÄ°´¼ü´¦Àí (K1_PRESSED²¿·Ö) =====;
+02D3                 323     KEY_RET1:
+02D3 22              324         RET
+02D4                 325     KEY_SCAN1:
+                     326         ; ¼ì²âK1
+02D4 309004          327         JNB K1, K1_PRESSED
+02D7 754300          328             MOV KEY_TIMER, #0   ; °´¼üÊÍ·ÅÊ±ÖØÖÃ¼ÆÊ±Æ÷
+02DA 22              329         RET
+                     330        
+02DB                 331     K1_PRESSED:
+02DB 12047B          332             LCALL KEY_DELAY    
+02DE 0543            333         INC KEY_TIMER
+02E0 E543            334         MOV A, KEY_TIMER
+02E2 B401EE          335         CJNE A, #1, KEY_RET1 ; Î´´ïµ½³¤°´Ê±¼ä
+                     336     
+                     337             ; K1¹¦ÄÜ£ºÄ£Ê½ÇÐ»»
+02E5 754300          338         MOV KEY_TIMER, #0   ; ÖØÖÃ¼ÆÊ±Æ÷
+02E8 120480          339         LCALL BEEP_SHORT
+                     340     
+                     341         ; ±£´æµ±Ç°Ä£Ê½µ½OLD_MODE
+02EB E53B            342         MOV A, MODE
+02ED F542            343         MOV OLD_MODE, A
+                     344             
+                     345         ; ÍË³öµ±Ç°Ä£Ê½Ê±±£´æÉèÖÃ (¹Ø¼üÐÞ¸´)
+02EF E542            346         MOV A, OLD_MODE
+02F1 B40108          347         CJNE A, #1, CHECK_SAVE_LOW
+                     348         ; ±£´æÉÏÏÞÉèÖÃ
+02F4 854038          349         MOV TEMP_HIGH_H, SET_TEMP_H
+02F7 853F37          350         MOV TEMP_HIGH_L, SET_TEMP_L
+02FA 8009            351         SJMP DO_MODE_SWITCH
+                     352         
+02FC                 353     CHECK_SAVE_LOW:
+02FC B40206          354         CJNE A, #2, DO_MODE_SWITCH
+                     355         ; ±£´æÏÂÏÞÉèÖÃ
+02FF 85403A          356         MOV TEMP_LOW_H, SET_TEMP_H
+0302 853F39          357         MOV TEMP_LOW_L, SET_TEMP_L
+                     358     
+0305                 359     DO_MODE_SWITCH:
+                     360         ; Ñ­»·ÇÐ»»Ä£Ê½
+0305 E53B            361         MOV A, MODE
+0307 2401            362         ADD A, #1
+0309 B40302          363         CJNE A, #3, K1_MODE
+030C 7400            364         MOV A, #0        ; ³¬¹2Ôò»Øµ½0
+                     365     
+030E                 366     K1_MODE:
+030E F53B            367         MOV MODE, A
+                     368         
+                     369         ; ½øÈëÐÂÄ£Ê½µÄ³õÊ¼»¯
+0310 E53B            370         MOV A, MODE
+0312 6056            371         JZ K1_NORMAL    ; Õ³£Ä£Ê½
+                     372         
+0314 B40114          373         CJNE A, #1, INIT_SET_LOW
+                     374         ; ÉÏÏÞÉèÖÃÄ£Ê½³õÊ¼»¯ - ¼ÓÔØµ±Ç°ÉÏÏÞÖµ (ÐÞ¸´µã)
+0317 85373F          375         MOV SET_TEMP_L, TEMP_HIGH_L
+031A 853840          376         MOV SET_TEMP_H, TEMP_HIGH_H
+031D 754100          377         MOV SET_SIGN, #0
+0320 E538            378         MOV A, TEMP_HIGH_H
+0322 5480            379         ANL A, #80H
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE     7
+
+0324 6003            380         JZ SET_HIGH_POS
+0326 754101          381         MOV SET_SIGN, #1
+0329                 382     SET_HIGH_POS:
+0329 8040            383         SJMP K1_DISPLAY
+                     384         
+032B                 385     INIT_SET_LOW:
+032B B4023D          386         CJNE A, #2, K1_DISPLAY
+                     387         ; ÏÂÏÞÉèÖÃÄ£Ê½³õÊ¼»¯ - ¼ÓÔØµ±Ç°ÏÂÏÞÖµ (ÐÞ¸´µã)
+032E 85393F          388         MOV SET_TEMP_L, TEMP_LOW_L
+0331 853A40          389         MOV SET_TEMP_H, TEMP_LOW_H
+0334 754100          390         MOV SET_SIGN, #0
+0337 E53A            391         MOV A, TEMP_LOW_H
+0339 5480            392         ANL A, #80H
+033B 6018            393         JZ SET_LOW_POS
+033D 754101          394         MOV SET_SIGN, #1
+                     395     
+0340                 396     NOT_SET_HIGH:
+0340 B40228          397         CJNE A, #2, K1_DISPLAY
+                     398         ; ÏÂÏÞÉèÖÃÄ£Ê½
+0343 85393F          399         MOV SET_TEMP_L, TEMP_LOW_L
+0346 853A40          400         MOV SET_TEMP_H, TEMP_LOW_H
+0349 754100          401         MOV SET_SIGN, #0
+034C E53A            402         MOV A, TEMP_LOW_H
+034E 5480            403         ANL A, #80H
+0350 6003            404         JZ SET_LOW_POS
+0352 754101          405         MOV SET_SIGN, #1
+0355                 406     SET_LOW_POS:
+0355 8014            407             SJMP K1_DISPLAY
+0357                 408     K1_SAVE_SETTINGS:
+                     409         ; ÍË³öÊ±±£´æÉèÖÃÖµ
+0357 E542            410         MOV A, OLD_MODE
+0359 B40108          411         CJNE A, #1, SAVE_LOW
+                     412         ; ±£´æÉÏÏÞ
+035C 854038          413         MOV TEMP_HIGH_H, SET_TEMP_H
+035F 853F37          414         MOV TEMP_HIGH_L, SET_TEMP_L
+0362 806D            415         SJMP K1_BEEP
+0364                 416     SAVE_LOW:
+0364 85403A          417         MOV TEMP_LOW_H, SET_TEMP_H
+0367 853F39          418         MOV TEMP_LOW_L, SET_TEMP_L
+                     419     
+036A                 420     K1_NORMAL:
+                     421         ; Õ³£Ä£Ê½²»ÐèÒª¶îÍâ³õÊ¼»¯
+036A 22              422         RET
+036B                 423     K1_DISPLAY:
+                     424         ; ÇåÆÁ²¢ÏÔÊ¾µ±Ç°Ä£Ê½
+036B 1205A8          425         LCALL LCD_CLEAR
+036E 7480            426         MOV A, #80H       ; µÚÒ»ÐÐÆðÊ¼µØÖ·
+0370 12058C          427         LCALL LCD_CMD
+0373 90029F          428         MOV DPTR, #TEXT_TITLE
+0376 1205AE          429         LCALL LCD_WRITE_STRING
+                     430         
+                     431         ; ¸ù¾ÝÄ£Ê½ÏÔÊ¾²»Í¬ÌáÊ¾
+0379 E53B            432         MOV A, MODE
+037B 6045            433         JZ MODE_NORMAL
+037D B40121          434         CJNE A, #1, MODE_LOW
+                     435         
+                     436         ; ÉÏÏÞÉèÖÃÄ£Ê½ÌáÊ¾
+0380 74C0            437         MOV A, #0C0H      ; µÚ¶þÐÐÆðÊ¼µØÖ·
+0382 12058C          438         LCALL LCD_CMD
+0385 9002BC          439         MOV DPTR, #TEXT_SET_HIGH
+0388 1205AE          440         LCALL LCD_WRITE_STRING
+                     441         ; ÏÔÊ¾µ±Ç°ÉèÖÃÖµ
+038B 74C6            442         MOV A, #0C6H      ; "HTemp:"ºóÎ»ÖÃ
+038D 12058C          443         LCALL LCD_CMD
+0390 854031          444         MOV TEMP_H, SET_TEMP_H
+0393 853F30          445         MOV TEMP_L, SET_TEMP_L
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE     8
+
+0396 854136          446         MOV SIGN, SET_SIGN
+0399 120637          447         LCALL CONVERT_TEMP
+039C 120689          448         LCALL DISPLAY_TEMP
+039F 802C            449         SJMP WAIT_FOR_RELEASE ; Ìø×ªµ½µÈ´ÊÍ·Å
+                     450      
+03A1                 451     MODE_LOW:
+                     452         ; ÏÂÏÞÉèÖÃÄ£Ê½ÌáÊ¾
+03A1 74C0            453         MOV A, #0C0H
+03A3 12058C          454         LCALL LCD_CMD
+03A6 9002C3          455         MOV DPTR, #TEXT_SET_LOW
+03A9 1205AE          456         LCALL LCD_WRITE_STRING
+                     457         ; ÏÔÊ¾µ±Ç°ÉèÖÃÖµ
+03AC 74C6            458         MOV A, #0C6H      ; "LTemp:"ºóÎ»ÖÃ
+03AE 12058C          459         LCALL LCD_CMD
+03B1 854031          460         MOV TEMP_H, SET_TEMP_H
+03B4 853F30          461         MOV TEMP_L, SET_TEMP_L
+03B7 854136          462         MOV SIGN, SET_SIGN
+03BA 120637          463         LCALL CONVERT_TEMP
+03BD 120689          464         LCALL DISPLAY_TEMP
+03C0 800B            465         SJMP WAIT_FOR_RELEASE ; Ìø×ªµ½µÈ´ÊÍ·Å
+                     466     
+                     467     
+03C2                 468     MODE_NORMAL:
+                     469         ; Õ³£Ä£Ê½ÌáÊ¾
+03C2 74C0            470         MOV A, #0C0H
+03C4 12058C          471         LCALL LCD_CMD
+03C7 9002CB          472         MOV DPTR, #TEXT_NORMAL
+03CA 1205AE          473         LCALL LCD_WRITE_STRING
+03CD                 474     WAIT_FOR_RELEASE:
+03CD 3090FD          475         JNB K1, WAIT_FOR_RELEASE ; µÈ´°´¼üÊÍ·Å
+03D0 22              476         RET
+03D1                 477     K1_BEEP:
+03D1 120480          478         LCALL BEEP_SHORT
+03D4 3090FD          479         JNB K1, $        ; µÈ´°´¼üÊÍ·Å
+03D7 22              480         RET
+                     481     
+03D8                 482     KEY_RET2:
+03D8 22              483         RET
+03D9                 484     KEY_SCAN2:
+                     485         ; ¼ì²âK2
+03D9 309101          486         JNB K2, K2_PRESSED
+03DC 22              487         RET
+03DD                 488     K2_PRESSED:
+03DD 12047B          489         LCALL KEY_DELAY
+03E0 2091F5          490         JB K2, KEY_RET2
+                     491         
+                     492         ; ¸ù¾ÝÄ£Ê½Ñ¡Ôñ¹¦ÄÜ
+03E3 E53B            493         MOV A, MODE
+03E5 6019            494         JZ K2_NORMAL        ; Õ³£Ä£Ê½
+                     495         
+                     496         ; ÉèÖÃÄ£Ê½£º¼Ó1
+03E7 120491          497         LCALL SET_INC
+                     498         ; ¸üÐÂÏÔÊ¾
+03EA 74C6            499         MOV A, #0C6H        ; ÎÂ¶ÈÏÔÊ¾Î»ÖÃ
+03EC 12058C          500         LCALL LCD_CMD
+03EF 854031          501         MOV TEMP_H, SET_TEMP_H
+03F2 853F30          502         MOV TEMP_L, SET_TEMP_L
+03F5 854136          503         MOV SIGN, SET_SIGN
+03F8 120637          504         LCALL CONVERT_TEMP
+03FB 120689          505         LCALL DISPLAY_TEMP
+03FE 8006            506         SJMP K2_BEEP
+                     507     ;===== °´¼üÉ¨Ãè×Ó³ÌÐò =====;
+0400                 508     K2_NORMAL:
+                     509         ; Õ³£Ä£Ê½£º²é¿´ÉÏÏÞ
+0400 753D01          510         MOV VIEW_MODE, #1
+0403 753E02          511         MOV VIEW_CNT, #2 ; ÏÔÊ¾Ô¼1Ãë(0.5s*2)
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE     9
+
+0406                 512     K2_BEEP:
+0406 120480          513         LCALL BEEP_SHORT
+0409 3091FD          514         JNB K2, $        ; µÈ´ÊÍ·Å
+040C 22              515         RET
+040D                 516     KEY_RET3:
+040D 22              517         RET
+040E                 518     KEY_SCAN3:
+                     519         ; ¼ì²âK3
+040E 309201          520         JNB K3, K3_PRESSED
+0411 22              521         RET
+0412                 522     K3_PRESSED:
+0412 12047B          523         LCALL KEY_DELAY
+0415 2092F5          524         JB K3, KEY_RET3
+                     525         
+                     526         ; ¸ù¾ÝÄ£Ê½Ñ¡Ôñ¹¦ÄÜ
+0418 E53B            527         MOV A, MODE
+041A 6019            528         JZ K3_NORMAL        ; Õ³£Ä£Ê½
+                     529         
+                     530         ; ÉèÖÃÄ£Ê½£º¼õ1
+041C 1204D5          531         LCALL SET_DEC
+                     532         ; ¸üÐÂÏÔÊ¾
+041F 74C6            533         MOV A, #0C6H        ; ÎÂ¶ÈÏÔÊ¾Î»ÖÃ
+0421 12058C          534         LCALL LCD_CMD
+0424 854031          535         MOV TEMP_H, SET_TEMP_H
+0427 853F30          536         MOV TEMP_L, SET_TEMP_L
+042A 854136          537         MOV SIGN, SET_SIGN
+042D 120637          538         LCALL CONVERT_TEMP
+0430 120689          539         LCALL DISPLAY_TEMP
+0433 8006            540         SJMP K3_BEEP
+0435                 541     K3_NORMAL:
+                     542         ; Õ³£Ä£Ê½£º²é¿´ÏÂÏÞ
+0435 753D02          543         MOV VIEW_MODE, #2
+0438 753E02          544         MOV VIEW_CNT, #2 ; ÏÔÊ¾Ô¼1Ãë
+043B                 545     K3_BEEP:
+043B 120480          546         LCALL BEEP_SHORT
+043E 3092FD          547         JNB K3, $        ; µÈ´ÊÍ·Å
+0441 22              548         RET
+                     549     
+                     550     
+0442                 551     KEY_RET4:
+0442 22              552         RET
+0443                 553     KEY_SCAN4:
+                     554         ; ¼ì²âK4
+0443 309301          555         JNB K4, K4_PRESSED
+0446 22              556         RET
+0447                 557     K4_PRESSED:
+0447 12047B          558         LCALL KEY_DELAY
+044A 2093F5          559         JB K4, KEY_RET4
+                     560         
+                     561         ; ¸ù¾ÝÄ£Ê½Ñ¡Ôñ¹¦ÄÜ
+044D E53B            562         MOV A, MODE
+044F 601E            563         JZ K4_NORMAL        ; Õ³£Ä£Ê½
+                     564         
+                     565         ; ÉèÖÃÄ£Ê½£ºÇÐ»»Õ¸º
+0451 E541            566         MOV A, SET_SIGN
+0453 F4              567         CPL A
+0454 F541            568         MOV SET_SIGN, A
+                     569         ; ¸üÐÂ·ûºÅ
+0456 12051B          570         LCALL SET_UPDATE_SIGN
+                     571         ; ¸üÐÂÏÔÊ¾
+0459 74C6            572         MOV A, #0C6H        ; ÎÂ¶ÈÏÔÊ¾Î»ÖÃ
+045B 12058C          573         LCALL LCD_CMD
+045E 854031          574         MOV TEMP_H, SET_TEMP_H
+0461 853F30          575         MOV TEMP_L, SET_TEMP_L
+0464 854136          576         MOV SIGN, SET_SIGN
+0467 120637          577         LCALL CONVERT_TEMP
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE    10
+
+046A 120689          578         LCALL DISPLAY_TEMP
+046D 8005            579         SJMP K4_BEEP
+046F                 580     K4_NORMAL:
+                     581         ; Õ³£Ä£Ê½£ºÇÐ»»°´¼üÒô
+046F E53C            582         MOV A, BEEP_FLAG
+0471 F4              583         CPL A
+0472 F53C            584         MOV BEEP_FLAG, A
+0474                 585     K4_BEEP:
+0474 120480          586         LCALL BEEP_SHORT  ; ×ÜÊÇµ÷ÓÃ£¬ÄÚ²¿»á¼ì²é±êÖ¾
+0477 3093FD          587         JNB K4, $        ; µÈ´ÊÍ·Å
+047A 22              588         RET              ; ¹Ø¼ü£ºÌí¼Ó·µ»ØÖ¸Áî
+                     589     ; °´¼ü·À¶¶ÑÓÊ±
+047B                 590     KEY_DELAY:
+047B 7D0A            591         MOV R5, #10
+047D DDFE            592         DJNZ R5, $
+047F 22              593         RET
+                     594     
+                     595     ; ¶Ì·äÃùÒô
+0480                 596     BEEP_SHORT:
+0480 E53C            597         MOV A, BEEP_FLAG
+0482 600C            598         JZ NO_BEEP
+                     599         
+                     600         ; ²úÉú¶Ì´ÙµÄ"µÎ"Éù
+0484 D2A2            601         SETB BEEP
+                     602         ; ×ã¹»³¤µÄÑÓÊ± (Ô¼5ms)
+0486 7E0A            603         MOV R6, #10
+                     604     
+0488                 605     BEEP_DELAY1:
+0488 7FFA            606         MOV R7, #250
+048A DFFE            607         DJNZ R7, $
+048C DEFA            608         DJNZ R6, BEEP_DELAY1
+048E C2A2            609         CLR BEEP      ; È·±£·¢Éùºó¹Ø±Õ
+                     610     
+0490                 611     NO_BEEP:
+0490 22              612         RET
+                     613     
+                     614     ;===== ÉèÖÃÄ£Ê½¼Ó¼õ¹¦ÄÜ =====;
+0491                 615     SET_INC:
+                     616         ; ÉèÖÃÖµ¼Ó1 (ÕûÊ²¿·Ö)
+0491 E541            617         MOV A, SET_SIGN
+0493 702A            618         JNZ SET_INC_NEG
+                     619         ; ÕÊ¼Ó1
+0495 E53F            620         MOV A, SET_TEMP_L
+0497 2410            621         ADD A, #16      ; ¼Ó1¡ãC (16¸ö×îÐ¡µ¥Î»)
+0499 F53F            622         MOV SET_TEMP_L, A
+049B E540            623         MOV A, SET_TEMP_H
+049D 3400            624         ADDC A, #0
+049F F540            625         MOV SET_TEMP_H, A
+                     626         ; ¼ì²éÉÏÏÞ(125¡ãC)
+04A1 E540            627         MOV A, SET_TEMP_H
+04A3 700F            628         JNZ SET_INC_CHECK
+04A5 E53F            629         MOV A, SET_TEMP_L
+04A7 B4D00A          630         CJNE A, #0D0H, SET_INC_CHECK  ; 125*16=2000(07D0H)
+04AA 4008            631         JC SET_INC_CHECK
+                     632         ; ³¬¹ÉÏÏÞ
+04AC 753FD0          633         MOV SET_TEMP_L, #0D0H  ; 125¡ãC
+04AF 754007          634         MOV SET_TEMP_H, #07H
+04B2 8020            635         SJMP SET_INC_END
+                     636     
+04B4                 637     SET_INC_CHECK:
+                     638         ; ¼ì²éÊÇ·ñ´Ó¸º±äÕ
+04B4 E540            639         MOV A, SET_TEMP_H
+04B6 5480            640         ANL A, #80H
+04B8 601A            641         JZ SET_INC_END   ; ÈÔÊÇÕÊ
+                     642         ; ·ûºÅ±ä»¯(¸º±äÕ)
+04BA 754100          643         MOV SET_SIGN, #0
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE    11
+
+04BD 8015            644         SJMP SET_INC_END
+                     645     
+04BF                 646     SET_INC_NEG:
+                     647         ; ¸ºÊ¼Ó1(¾ø¶ÔÖµ¼õÐ¡)
+04BF E53F            648         MOV A, SET_TEMP_L
+04C1 2410            649         ADD A, #16
+04C3 F53F            650         MOV SET_TEMP_L, A
+04C5 E540            651         MOV A, SET_TEMP_H
+04C7 3400            652         ADDC A, #0
+04C9 F540            653         MOV SET_TEMP_H, A
+                     654         ; ¼ì²éÊÇ·ñ±äÎªÕÊ
+04CB E540            655         MOV A, SET_TEMP_H
+04CD 5480            656         ANL A, #80H
+04CF 7003            657         JNZ SET_INC_END
+                     658         ; ·ûºÅ±ä»¯(¸º±äÕ)
+04D1 754100          659         MOV SET_SIGN, #0
+                     660     
+04D4                 661     SET_INC_END:
+04D4 22              662         RET
+                     663     
+04D5                 664     SET_DEC:
+                     665         ; ÉèÖÃÖµ¼õ1 (ÕûÊ²¿·Ö)
+04D5 E541            666         MOV A, SET_SIGN
+04D7 602B            667         JZ SET_DEC_POS
+                     668         ; ¸ºÊ¼õ1(¾ø¶ÔÖµÔö¼Ó)
+04D9 E53F            669         MOV A, SET_TEMP_L
+04DB C3              670         CLR C
+04DC 9410            671         SUBB A, #16
+04DE F53F            672         MOV SET_TEMP_L, A
+04E0 E540            673         MOV A, SET_TEMP_H
+04E2 9400            674         SUBB A, #0
+04E4 F540            675         MOV SET_TEMP_H, A
+                     676         ; ¼ì²éÏÂÏÞ(-55¡ãC)
+04E6 E540            677         MOV A, SET_TEMP_H
+04E8 B4FF0E          678         CJNE A, #0FFH, SET_DEC_CHECK
+04EB E53F            679         MOV A, SET_TEMP_L
+04ED B4B009          680         CJNE A, #0B0H, SET_DEC_CHECK  ; -55*16=-880(FC90H)
+04F0 5007            681         JNC SET_DEC_CHECK
+                     682         ; µÍÓÚÏÂÏÞ
+04F2 753F90          683         MOV SET_TEMP_L, #90H  ; -55¡ãC
+04F5 7540FC          684         MOV SET_TEMP_H, #0FCH
+04F8 22              685         RET
+                     686     
+04F9                 687     SET_DEC_CHECK:
+                     688         ; ¼ì²éÊÇ·ñ´ÓÕ±ä¸º
+04F9 E540            689         MOV A, SET_TEMP_H
+04FB 5480            690         ANL A, #80H
+04FD 701B            691         JNZ SET_DEC_END   ; ÈÔÊÇ¸ºÊ
+                     692         ; ·ûºÅ±ä»¯(Õ±ä¸º)
+04FF 754101          693         MOV SET_SIGN, #1
+0502 8016            694         SJMP SET_DEC_END
+                     695     
+0504                 696     SET_DEC_POS:
+                     697         ; ÕÊ¼õ1
+0504 E53F            698         MOV A, SET_TEMP_L
+0506 C3              699         CLR C
+0507 9410            700         SUBB A, #16
+0509 F53F            701         MOV SET_TEMP_L, A
+050B E540            702         MOV A, SET_TEMP_H
+050D 9400            703         SUBB A, #0
+050F F540            704         MOV SET_TEMP_H, A
+                     705         ; ¼ì²éÊÇ·ñ±äÎª¸ºÊ
+0511 E540            706         MOV A, SET_TEMP_H
+0513 5480            707         ANL A, #80H
+0515 6003            708         JZ SET_DEC_END
+                     709         ; ·ûºÅ±ä»¯(Õ±ä¸º)
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE    12
+
+0517 754101          710         MOV SET_SIGN, #1
+                     711     
+051A                 712     SET_DEC_END:
+051A 22              713         RET
+                     714     
+                     715     ; ¸üÐÂÉèÖÃÄ£Ê½ÏÂµÄ·ûºÅ
+                     716     ;===== ÐÞ¸´ºóµÄ·ûºÅ¸üÐÂ×Ó³ÌÐò =====;
+051B                 717     SET_UPDATE_SIGN:
+051B E541            718         MOV A, SET_SIGN
+051D 700F            719         JNZ SET_POSITIVE
+                     720         
+                     721         ; Õ×ª¸º£ºÈ¡²¹Âë (ÒÆ³¶àÓàµÄORL)
+051F E53F            722         MOV A, SET_TEMP_L
+0521 F4              723         CPL A
+0522 2401            724         ADD A, #1
+0524 F53F            725         MOV SET_TEMP_L, A
+0526 E540            726         MOV A, SET_TEMP_H
+0528 F4              727         CPL A
+0529 3400            728         ADDC A, #0
+052B F540            729         MOV SET_TEMP_H, A    ; ×¢Òâ£ºÕâÀïÒÆ³ÁË ORL A,#80H
+052D 22              730         RET
+                     731     
+052E                 732     SET_POSITIVE:
+                     733         ; ¸º×ªÕ£ºÈ¡²¹Âë (ÒÆ³¶àÓàµÄANL)
+052E E53F            734         MOV A, SET_TEMP_L
+0530 F4              735         CPL A
+0531 2401            736         ADD A, #1
+0533 F53F            737         MOV SET_TEMP_L, A
+0535 E540            738         MOV A, SET_TEMP_H
+0537 F4              739         CPL A
+0538 3400            740         ADDC A, #0
+053A F540            741         MOV SET_TEMP_H, A    ; ×¢Òâ£ºÕâÀïÒÆ³ÁË ANL A,#7FH
+053C 22              742         RET
+                     743     
+                     744     ;===== ±¨¾¯¼ì²é×Ó³ÌÐò =====;
+053D                 745     CHECK_ALARM:
+                     746         ; ±£´æµ±Ç°ÎÂ¶ÈµÄÔ­Ê¼ÖµÓÃÓÚ±È½Ï
+053D E544            747         MOV A, RAW_TEMP_H
+053F FA              748         MOV R2, A
+0540 E545            749         MOV A, RAW_TEMP_L
+0542 FB              750         MOV R3, A
+                     751         
+                     752         ; ±È½ÏÉÏÏÞºÍÏÂÏÞÒÔÈ·¶¨Ä£Ê½
+0543 C3              753         CLR C
+0544 E538            754         MOV A, TEMP_HIGH_H
+0546 953A            755         SUBB A, TEMP_LOW_H
+0548 7004            756         JNZ CHECK_MODE
+054A E537            757         MOV A, TEMP_HIGH_L
+054C 9539            758         SUBB A, TEMP_LOW_L
+054E                 759     CHECK_MODE:
+054E 4014            760         JC REVERSE_MODE    ; Èç¹ûÉÏÏÞ<ÏÂÏÞ£¬Ìø×ªµ½·´ÏòÄ£Ê½
+                     761         
+                     762         ; Õ³£Ä£Ê½ (ÉÏÏÞ>ÏÂÏÞ)
+                     763         ; ÏÈ¼ì²éÊÇ·ñµÍÓÚÏÂÏÞ
+0550 C3              764         CLR C
+0551 EB              765         MOV A, R3          ; µ±Ç°ÎÂ¶ÈµÍ×Ö½Ú
+0552 9539            766         SUBB A, TEMP_LOW_L
+0554 EA              767         MOV A, R2          ; µ±Ç°ÎÂ¶È¸ß×Ö½Ú
+0555 953A            768         SUBB A, TEMP_LOW_H
+0557 401D            769         JC ALARM_ON        ; Èç¹ûµ±Ç°ÎÂ¶È < ÏÂÏÞ£¬±¨¾¯
+                     770         
+                     771         ; ÔÙ¼ì²éÊÇ·ñ¸ßÓÚÉÏÏÞ
+0559 C3              772         CLR C
+055A E537            773         MOV A, TEMP_HIGH_L
+055C 9B              774         SUBB A, R3         ; µ±Ç°ÎÂ¶ÈµÍ×Ö½Ú
+055D E538            775         MOV A, TEMP_HIGH_H
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE    13
+
+055F 9A              776         SUBB A, R2         ; µ±Ç°ÎÂ¶È¸ß×Ö½Ú
+0560 4014            777         JC ALARM_ON        ; Èç¹ûµ±Ç°ÎÂ¶È > ÉÏÏÞ£¬±¨¾¯
+0562 8015            778         SJMP ALARM_OFF     ; ÔÚ·¶Î§ÄÚ£¬¹Ø±Õ±¨¾¯
+                     779         
+0564                 780     REVERSE_MODE:
+                     781         ; ·´ÏòÄ£Ê½ (ÏÂÏÞ>ÉÏÏÞ)
+                     782         ; ¼ì²éÊÇ·ñÔÚ±¨¾¯Çø¼äÄÚ (ÉÏÏÞ < µ±Ç°ÎÂ¶È < ÏÂÏÞ)
+                     783         
+                     784         ; ÏÈ¼ì²éÊÇ·ñ¸ßÓÚÉÏÏÞ
+0564 C3              785         CLR C
+0565 E537            786         MOV A, TEMP_HIGH_L
+0567 9B              787         SUBB A, R3         ; µ±Ç°ÎÂ¶ÈµÍ×Ö½Ú
+0568 E538            788         MOV A, TEMP_HIGH_H
+056A 9A              789         SUBB A, R2         ; µ±Ç°ÎÂ¶È¸ß×Ö½Ú
+056B 500C            790         JNC ALARM_OFF      ; Èç¹ûµ±Ç°ÎÂ¶È <= ÉÏÏÞ£¬²»±¨¾¯
+                     791         
+                     792         ; ÔÙ¼ì²éÊÇ·ñµÍÓÚÏÂÏÞ
+056D C3              793         CLR C
+056E EB              794         MOV A, R3          ; µ±Ç°ÎÂ¶ÈµÍ×Ö½Ú
+056F 9539            795         SUBB A, TEMP_LOW_L
+0571 EA              796         MOV A, R2          ; µ±Ç°ÎÂ¶È¸ß×Ö½Ú
+0572 953A            797         SUBB A, TEMP_LOW_H
+0574 5003            798         JNC ALARM_OFF      ; Èç¹ûµ±Ç°ÎÂ¶È >= ÏÂÏÞ£¬²»±¨¾¯
+                     799         
+0576                 800     ALARM_ON:
+0576 D2A3            801         SETB ALARM         ; ¿ªÆô±¨¾¯Êä³ö
+0578 22              802         RET
+                     803     
+0579                 804     ALARM_OFF:
+0579 C2A3            805         CLR ALARM          ; ¹Ø±Õ±¨¾¯Êä³ö
+057B 22              806         RET
+                     807     
+                     808     
+                     809     ;===== LCDÇ¶¯×Ó³ÌÐò =====; 
+                     810     ; LCD³õÊ¼»¯
+057C                 811     LCD_INIT:
+057C 7438            812         MOV A, #38H      ; 8Î»Ä£Ê½, 2ÐÐ, 5x7µãÕó
+057E 12058C          813         LCALL LCD_CMD
+0581 740C            814         MOV A, #0CH      ; ÏÔÊ¾¿ª, ¹â±ê¹Ø, ÉÁË¸¹Ø
+0583 12058C          815         LCALL LCD_CMD
+0586 7406            816         MOV A, #06H      ; µØÖ·µÝÔö, ²»ÒÆÆÁ
+0588 12058C          817         LCALL LCD_CMD
+058B 22              818         RET
+                     819     
+                     820     ; ·¢ËÍÃüÁîµ½LCD
+058C                 821     LCD_CMD:
+058C C2A5            822         CLR RS           ; ÃüÁîÄ£Ê½
+058E C2A6            823         CLR RW           ; Ð´²Ù×÷
+0590 F5B0            824         MOV LCD_DAT, A   ; ·¢ËÍÃüÁî
+0592 D2A7            825         SETB EN          ; Ê¹ÄÜÂö³å
+0594 C2A7            826         CLR EN
+0596 1206CA          827         LCALL DELAY_2MS  ; ÑÓÊ±µÈ´
+0599 22              828         RET
+                     829     
+                     830     ; ·¢ËÍÊ¾Ýµ½LCD
+059A                 831     LCD_DATA:
+059A D2A5            832         SETB RS          ; Ê¾ÝÄ£Ê½
+059C C2A6            833         CLR RW           ; Ð´²Ù×÷
+059E F5B0            834         MOV LCD_DAT, A   ; ·¢ËÍÊ¾Ý
+05A0 D2A7            835         SETB EN          ; Ê¹ÄÜÂö³å
+05A2 C2A7            836         CLR EN
+05A4 1206CA          837         LCALL DELAY_2MS  ; ÑÓÊ±µÈ´
+05A7 22              838         RET
+                     839     
+                     840     ; ÇåÆÁ
+05A8                 841     LCD_CLEAR:
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE    14
+
+05A8 7401            842         MOV A, #01H      ; ÇåÆÁÃüÁî
+05AA 12058C          843         LCALL LCD_CMD
+05AD 22              844         RET
+                     845     
+                     846     ; ÏÔÊ¾×Ö·û´®(DPTRÖ¸Ïò×Ö·û´®)
+05AE                 847     LCD_WRITE_STRING:
+05AE E4              848         CLR A
+05AF 93              849         MOVC A, @A+DPTR  ; È¡×Ö·û
+05B0 6006            850         JZ WS_END        ; Óöµ½0½áÊø
+05B2 12059A          851         LCALL LCD_DATA   ; ÏÔÊ¾×Ö·û
+05B5 A3              852         INC DPTR         ; Ö¸ÏòÏÂÒ»¸ö
+05B6 80F6            853         SJMP LCD_WRITE_STRING
+05B8                 854     WS_END:
+05B8 22              855         RET
+                     856     
+                     857     ;===== DS18B20Ç¶¯×Ó³ÌÐò =====;
+                     858     ; ³õÊ¼»¯DS18B20
+05B9                 859     DS18B20_INIT:
+05B9 C2A4            860         CLR DQ           ; À­µÍ×ÜÏß
+05BB 7EFA            861         MOV R6, #250     ; ÑÓÊ±480us (12MHz)
+05BD DEFE            862         DJNZ R6, $
+05BF D2A4            863         SETB DQ          ; ÊÍ·Å×ÜÏß
+05C1 7E1E            864         MOV R6, #30      ; ÑÓÊ±60us
+05C3 DEFE            865         DJNZ R6, $
+                     866         
+                     867         ; ¼ì²âÓ¦´ðÐÅºÅ
+05C5 20A408          868         JB DQ, INIT_FAIL ; ÎÞÓ¦´ð
+05C8 7EF0            869         MOV R6, #240     ; µÈ´´æÔÚÂö³å½áÊø
+05CA DEFE            870         DJNZ R6, $
+05CC D2A4            871         SETB DQ          ; ÊÍ·Å×ÜÏß
+05CE C3              872         CLR C            ; ³É¹¦±êÖ¾
+05CF 22              873         RET
+                     874         
+05D0                 875     INIT_FAIL:
+05D0 D2A4            876         SETB DQ          ; ÊÍ·Å×ÜÏß
+05D2 D3              877         SETB C            ; Ê§°Ü±êÖ¾
+05D3 22              878         RET
+                     879     
+                     880     ; Ð´Ò»¸ö×Ö½Úµ½DS18B20 (AÖÐÎªÊ¾Ý)
+05D4                 881     DS18B20_WRITE:
+05D4 7F08            882         MOV R7, #8       ; 8Î»Ê¾Ý
+05D6                 883     WRITE_BIT:
+05D6 C2A4            884         CLR DQ           ; ¿ªÊ¼Ð´Ê±Ï¶
+05D8 7E04            885         MOV R6, #4       ; ÑÓÊ±8us
+05DA DEFE            886         DJNZ R6, $
+05DC 13              887         RRC A            ; ÒÆ³ö×îµÍÎ»
+05DD 92A4            888         MOV DQ, C        ; ·¢ËÍÎ»
+05DF 7E18            889         MOV R6, #24      ; ÑÓÊ±48us
+05E1 DEFE            890         DJNZ R6, $
+05E3 D2A4            891         SETB DQ          ; ÊÍ·Å×ÜÏß
+05E5 DFEF            892         DJNZ R7, WRITE_BIT
+05E7 D2A4            893         SETB DQ          ; ÊÍ·Å×ÜÏß
+05E9 22              894         RET
+                     895     
+                     896     ; ´ÓDS18B20¶ÁÈ¡Ò»¸ö×Ö½Ú (½á¹ûÔÚA)
+05EA                 897     DS18B20_READ:
+05EA 7F08            898         MOV R7, #8       ; 8Î»Ê¾Ý
+05EC                 899     READ_BIT:
+05EC C2A4            900         CLR DQ           ; ¿ªÊ¼¶ÁÊ±Ï¶
+05EE 7E02            901         MOV R6, #2       ; ÑÓÊ±4us
+05F0 DEFE            902         DJNZ R6, $
+05F2 D2A4            903         SETB DQ          ; ÊÍ·Å×ÜÏß
+05F4 7E04            904         MOV R6, #4       ; ÑÓÊ±8us
+05F6 DEFE            905         DJNZ R6, $
+05F8 A2A4            906         MOV C, DQ        ; ¶ÁÈ¡Î»
+05FA 13              907         RRC A            ; ´æÈëA
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE    15
+
+05FB 7E18            908         MOV R6, #24      ; ÑÓÊ±48us
+05FD DEFE            909         DJNZ R6, $
+05FF DFEB            910         DJNZ R7, READ_BIT
+0601 22              911         RET
+                     912     
+                     913     ; ¶ÁÈ¡ÎÂ¶ÈÖµ
+0602                 914     DS18B20_READ_TEMP:
+0602 1205B9          915         LCALL DS18B20_INIT ; ³õÊ¼»¯
+                     916         ;JC READ_FAIL      ; Ê§°Ü´¦Àí
+                     917         
+0605 74CC            918         MOV A, #0CCH      ; Ìø¹ROMÃüÁî
+0607 1205D4          919         LCALL DS18B20_WRITE
+060A 7444            920         MOV A, #44H       ; ¿ªÊ¼ÎÂ¶È×ª»»
+060C 1205D4          921         LCALL DS18B20_WRITE
+                     922         
+                     923         ; µÈ´×ª»»Íê³É (750ms)
+060F 7896            924         MOV R0, #150
+0611                 925     WAIT_CONV:
+0611 1206D3          926         LCALL DELAY_5MS
+0614 D8FB            927         DJNZ R0, WAIT_CONV
+                     928         
+0616 1205B9          929         LCALL DS18B20_INIT ; ÖØÐÂ³õÊ¼»¯
+0619 401A            930         JC READ_FAILEND
+                     931         
+061B 74CC            932         MOV A, #0CCH      ; Ìø¹ROM
+061D 1205D4          933         LCALL DS18B20_WRITE
+0620 74BE            934         MOV A, #0BEH      ; ¶ÁÔÝ´æÆ÷ÃüÁî
+0622 1205D4          935         LCALL DS18B20_WRITE
+                     936         
+0625 1205EA          937         LCALL DS18B20_READ ; ¶ÁÎÂ¶ÈµÍ×Ö½Ú
+0628 F530            938         MOV TEMP_L, A
+062A F545            939         MOV RAW_TEMP_L, A  ; ±£´æÔ­Ê¼²¹Âë
+062C 1205EA          940         LCALL DS18B20_READ ; ¶ÁÎÂ¶È¸ß×Ö½Ú
+062F F531            941         MOV TEMP_H, A
+0631 F544            942         MOV RAW_TEMP_H, A  ; ±£´æÔ­Ê¼²¹Âë
+0633 C3              943         CLR C
+0634 22              944         RET
+                     945     
+0635                 946     READ_FAILEND:
+0635 D3              947         SETB C            ; ÉèÖÃ´íÎó±êÖ¾
+0636 22              948         RET
+                     949     
+                     950     ;===== ÎÂ¶È´¦Àí×Ó³ÌÐò =====;
+                     951     ; ×ª»»ÎÂ¶ÈÖµÎªÊ×Ö
+0637                 952     CONVERT_TEMP:
+0637 E531            953         MOV A, TEMP_H
+0639 5480            954         ANL A, #80H
+063B 6015            955         JZ POSITIVE
+                     956         
+                     957         ; ¸ºÎÂ¶È´¦Àí£¨²¹Âë×ªÔ­Âë£©
+063D 753601          958         MOV SIGN, #1
+0640 E530            959         MOV A, TEMP_L
+0642 F4              960         CPL A
+0643 2401            961         ADD A, #1
+0645 F530            962         MOV TEMP_L, A
+0647 E531            963         MOV A, TEMP_H
+0649 F4              964         CPL A
+064A 3400            965         ADDC A, #0
+064C 547F            966         ANL A, #7FH       ; Çå³·ûºÅÎ»
+064E F531            967         MOV TEMP_H, A
+0650 8009            968         SJMP CONV_CONT
+                     969         
+0652                 970     POSITIVE:
+0652 753600          971         MOV SIGN, #0
+                     972         ; È·±£ÕÎÂ¶È¸ßÎ»ÎÞ·ûºÅÀ©Õ¹
+0655 E531            973         MOV A, TEMP_H
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE    16
+
+0657 540F            974         ANL A, #0FH
+0659 F531            975         MOV TEMP_H, A
+                     976         
+065B                 977     CONV_CONT:
+                     978         ; ÌáÈ¡ÕûÊ²¿·Ö
+065B E531            979         MOV A, TEMP_H
+065D 540F            980         ANL A, #0FH       ; È¡ÓÐÐ§µÍ4Î»
+065F 75F010          981         MOV B, #16        ; ×óÒÆ4Î» (¡Á16)
+0662 A4              982         MUL AB
+0663 F8              983         MOV R0, A         ; ÔÝ´æ½á¹û
+                     984         
+0664 E530            985         MOV A, TEMP_L
+0666 C4              986         SWAP A            ; ½»»»¸ßµÍ4Î»
+0667 540F            987         ANL A, #0FH       ; È¡¸ß4Î»
+0669 28              988         ADD A, R0         ; ×éºÏ³ÉÍêÕûÕûÊ
+066A F9              989         MOV R1, A         ; ±£´æÕûÊ²¿·Öµ½R1
+                     990         
+                     991         ; ¼ÆËã°ÙÎ»¡¢Ê®Î»¡¢¸öÎ»
+066B 75F064          992         MOV B, #100
+066E 84              993         DIV AB            ; A=°ÙÎ», B=ÓàÊ
+066F F532            994         MOV DIGIT0, A     ; ´æ´¢°ÙÎ»
+                     995         
+0671 E5F0            996         MOV A, B          ; ÓàÊ(0-99)
+0673 75F00A          997         MOV B, #10
+0676 84              998         DIV AB            ; A=Ê®Î», B=¸öÎ»
+0677 F533            999         MOV DIGIT1, A
+0679 85F034         1000         MOV DIGIT2, B
+                    1001         
+                    1002         ; Ð¡Ê²¿·Ö´¦Àí
+067C E530           1003         MOV A, TEMP_L
+067E 540F           1004         ANL A, #0FH       ; È¡µÍ4Î» (Ð¡Ê²¿·Ö)
+0680 75F006         1005         MOV B, #6         ; 0.0625 ¡Á 100 ¡Ö 6
+0683 A4             1006         MUL AB
+0684 E5F0           1007         MOV A, B          ; È¡ÕûÊ²¿·Ö (0-9)
+0686 F535           1008         MOV DIGIT3, A
+                    1009         
+0688 22             1010         RET
+                    1011     
+                    1012     ; ÏÔÊ¾ÎÂ¶È
+0689                1013     DISPLAY_TEMP:
+                    1014         ; ÏÔÊ¾·ûºÅ
+0689 E536           1015         MOV A, SIGN
+068B 6007           1016         JZ DISP_POS
+068D 742D           1017         MOV A, #'-'       ; ¸ººÅ
+068F 12059A         1018         LCALL LCD_DATA
+0692 8005           1019         SJMP DISP_DIGITS
+                    1020         
+0694                1021     DISP_POS:
+0694 7420           1022         MOV A, #' '       ; ¿Õ¸ñ
+0696 12059A         1023         LCALL LCD_DATA
+                    1024         
+0699                1025     DISP_DIGITS:
+                    1026         ; ÏÔÊ¾°ÙÎ»£¨Èç¹û²»Îª0£©
+0699 E532           1027         MOV A, DIGIT0
+069B 6007           1028         JZ NO_HUNDRED     ; Èç¹û°ÙÎ»Îª0Ôò²»ÏÔÊ¾
+069D 2430           1029         ADD A, #30H       ; ×ª»»ÎªASCII
+069F 12059A         1030         LCALL LCD_DATA
+06A2 8005           1031         SJMP DISP_TENS
+                    1032         
+06A4                1033     NO_HUNDRED:
+                    1034         ; °ÙÎ»Îª0Ê±ÏÔÊ¾¿Õ¸ñ
+06A4 7420           1035         MOV A, #' '
+06A6 12059A         1036         LCALL LCD_DATA
+                    1037     
+06A9                1038     DISP_TENS:
+                    1039         ; ÏÔÊ¾Ê®Î»
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE    17
+
+06A9 E533           1040         MOV A, DIGIT1
+06AB 2430           1041         ADD A, #30H
+06AD 12059A         1042         LCALL LCD_DATA
+                    1043         
+                    1044         ; ÏÔÊ¾¸öÎ»
+06B0 E534           1045         MOV A, DIGIT2
+06B2 2430           1046         ADD A, #30H
+06B4 12059A         1047         LCALL LCD_DATA
+                    1048         
+                    1049         ; ÏÔÊ¾Ð¡Êµã
+06B7 742E           1050         MOV A, #'.'
+06B9 12059A         1051         LCALL LCD_DATA
+                    1052         
+                    1053         ; ÏÔÊ¾Ð¡ÊÎ»
+06BC E535           1054         MOV A, DIGIT3
+06BE 2430           1055         ADD A, #30H
+06C0 12059A         1056         LCALL LCD_DATA
+                    1057         
+                    1058         ; ÏÔÊ¾µ¥Î»
+06C3 9002AC         1059         MOV DPTR, #TEXT_DEG
+06C6 1205AE         1060         LCALL LCD_WRITE_STRING
+                    1061         
+06C9 22             1062         RET
+                    1063     
+                    1064     ;===== ÑÓÊ±×Ó³ÌÐò =====;
+                    1065     ; 0.8msÑÓÊ±
+06CA                1066     DELAY_2MS:
+06CA 7B0A           1067         MOV R3, #10
+06CC 7C50           1068     DL1: MOV R4, #80
+06CE DCFE           1069         DJNZ R4, $
+06D0 DBFA           1070         DJNZ R3, DL1
+06D2 22             1071         RET
+                    1072     
+                    1073     ; 1msÑÓÊ±
+06D3                1074     DELAY_5MS:
+06D3 7D05           1075         MOV R5, #5
+06D5 1206CA         1076     DL2: LCALL DELAY_2MS
+06D8 DDFB           1077         DJNZ R5, DL2
+06DA 22             1078         RET
+                    1079     END
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE    18
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+ACC. . . . . . . .  D ADDR   00E0H   A   
+ALARM. . . . . . .  B ADDR   00A0H.3 A   
+ALARM_OFF. . . . .  C ADDR   0579H   A   
+ALARM_ON . . . . .  C ADDR   0576H   A   
+B. . . . . . . . .  D ADDR   00F0H   A   
+BEEP . . . . . . .  B ADDR   00A0H.2 A   
+BEEP_DELAY1. . . .  C ADDR   0488H   A   
+BEEP_FLAG. . . . .  D ADDR   003CH   A   
+BEEP_SHORT . . . .  C ADDR   0480H   A   
+CHECK_ALARM. . . .  C ADDR   053DH   A   
+CHECK_MODE . . . .  C ADDR   054EH   A   
+CHECK_SAVE_LOW . .  C ADDR   02FCH   A   
+CLEAR_LOOP . . . .  C ADDR   0164H   A   
+CONVERT_TEMP . . .  C ADDR   0637H   A   
+CONV_CONT. . . . .  C ADDR   065BH   A   
+CONV_LOW . . . . .  C ADDR   01F7H   A   
+DELAY_2MS. . . . .  C ADDR   06CAH   A   
+DELAY_500MS. . . .  C ADDR   0292H   A   
+DELAY_5MS. . . . .  C ADDR   06D3H   A   
+DELAY_LOOP . . . .  C ADDR   0290H   A   
+DIGIT0 . . . . . .  D ADDR   0032H   A   
+DIGIT1 . . . . . .  D ADDR   0033H   A   
+DIGIT2 . . . . . .  D ADDR   0034H   A   
+DIGIT3 . . . . . .  D ADDR   0035H   A   
+DISPLAY. . . . . .  C ADDR   01BFH   A   
+DISPLAY_TEMP . . .  C ADDR   0689H   A   
+DISP_CURRENT . . .  C ADDR   015BH   A   
+DISP_DIGITS. . . .  C ADDR   0699H   A   
+DISP_HIGH. . . . .  C ADDR   0196H   A   
+DISP_LOW . . . . .  C ADDR   01CCH   A   
+DISP_NORMAL. . . .  C ADDR   014EH   A   
+DISP_POS . . . . .  C ADDR   0694H   A   
+DISP_SET_HIGH. . .  C ADDR   0174H   A   
+DISP_SET_LOW . . .  C ADDR   0213H   A   
+DISP_TENS. . . . .  C ADDR   06A9H   A   
+DL1. . . . . . . .  C ADDR   06CCH   A   
+DL2. . . . . . . .  C ADDR   06D5H   A   
+DO_MODE_SWITCH . .  C ADDR   0305H   A   
+DQ . . . . . . . .  B ADDR   00A0H.4 A   
+DS18B20_INIT . . .  C ADDR   05B9H   A   
+DS18B20_READ . . .  C ADDR   05EAH   A   
+DS18B20_READ_TEMP.  C ADDR   0602H   A   
+DS18B20_WRITE. . .  C ADDR   05D4H   A   
+EN . . . . . . . .  B ADDR   00A0H.7 A   
+INIT_FAIL. . . . .  C ADDR   05D0H   A   
+INIT_SET_LOW . . .  C ADDR   032BH   A   
+K1 . . . . . . . .  B ADDR   0090H.0 A   
+K1_BEEP. . . . . .  C ADDR   03D1H   A   
+K1_DISPLAY . . . .  C ADDR   036BH   A   
+K1_MODE. . . . . .  C ADDR   030EH   A   
+K1_NORMAL. . . . .  C ADDR   036AH   A   
+K1_PRESSED . . . .  C ADDR   02DBH   A   
+K1_SAVE_SETTINGS .  C ADDR   0357H   A   
+K2 . . . . . . . .  B ADDR   0090H.1 A   
+K2_BEEP. . . . . .  C ADDR   0406H   A   
+K2_NORMAL. . . . .  C ADDR   0400H   A   
+K2_PRESSED . . . .  C ADDR   03DDH   A   
+K3 . . . . . . . .  B ADDR   0090H.2 A   
+K3_BEEP. . . . . .  C ADDR   043BH   A   
+K3_NORMAL. . . . .  C ADDR   0435H   A   
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE    19
+
+K3_PRESSED . . . .  C ADDR   0412H   A   
+K4 . . . . . . . .  B ADDR   0090H.3 A   
+K4_BEEP. . . . . .  C ADDR   0474H   A   
+K4_NORMAL. . . . .  C ADDR   046FH   A   
+K4_PRESSED . . . .  C ADDR   0447H   A   
+KEY_DELAY. . . . .  C ADDR   047BH   A   
+KEY_HANDLE . . . .  C ADDR   0250H   A   
+KEY_RET1 . . . . .  C ADDR   02D3H   A   
+KEY_RET2 . . . . .  C ADDR   03D8H   A   
+KEY_RET3 . . . . .  C ADDR   040DH   A   
+KEY_RET4 . . . . .  C ADDR   0442H   A   
+KEY_SCAN1. . . . .  C ADDR   02D4H   A   
+KEY_SCAN2. . . . .  C ADDR   03D9H   A   
+KEY_SCAN3. . . . .  C ADDR   040EH   A   
+KEY_SCAN4. . . . .  C ADDR   0443H   A   
+KEY_TIMER. . . . .  D ADDR   0043H   A   
+LCD_CLEAR. . . . .  C ADDR   05A8H   A   
+LCD_CMD. . . . . .  C ADDR   058CH   A   
+LCD_DAT. . . . . .  D ADDR   00B0H   A   
+LCD_DATA . . . . .  C ADDR   059AH   A   
+LCD_INIT . . . . .  C ADDR   057CH   A   
+LCD_WRITE_STRING .  C ADDR   05AEH   A   
+LOOP . . . . . . .  C ADDR   012EH   A   
+MAIN . . . . . . .  C ADDR   0100H   A   
+MODE . . . . . . .  D ADDR   003BH   A   
+MODE_LOW . . . . .  C ADDR   03A1H   A   
+MODE_NORMAL. . . .  C ADDR   03C2H   A   
+NOT_SET_HIGH . . .  C ADDR   0340H   A   
+NO_BEEP. . . . . .  C ADDR   0490H   A   
+NO_HUNDRED . . . .  C ADDR   06A4H   A   
+OLD_MODE . . . . .  D ADDR   0042H   A   
+P1 . . . . . . . .  D ADDR   0090H   A   
+P2 . . . . . . . .  D ADDR   00A0H   A   
+P3 . . . . . . . .  D ADDR   00B0H   A   
+POSITIVE . . . . .  C ADDR   0652H   A   
+POS_HIGH . . . . .  C ADDR   0234H   A   
+POS_LOW. . . . . .  C ADDR   026FH   A   
+POS_LOW_DISP . . .  C ADDR   01F4H   A   
+RAW_TEMP_H . . . .  D ADDR   0044H   A   
+RAW_TEMP_L . . . .  D ADDR   0045H   A   
+READ_BIT . . . . .  C ADDR   05ECH   A   
+READ_FAIL. . . . .  C ADDR   013DH   A   
+READ_FAILEND . . .  C ADDR   0635H   A   
+RESET_VIEW . . . .  C ADDR   028BH   A   
+REVERSE_MODE . . .  C ADDR   0564H   A   
+RS . . . . . . . .  B ADDR   00A0H.5 A   
+RW . . . . . . . .  B ADDR   00A0H.6 A   
+SAVE_LOW . . . . .  C ADDR   0364H   A   
+SET_DEC. . . . . .  C ADDR   04D5H   A   
+SET_DEC_CHECK. . .  C ADDR   04F9H   A   
+SET_DEC_END. . . .  C ADDR   051AH   A   
+SET_DEC_POS. . . .  C ADDR   0504H   A   
+SET_HIGH_POS . . .  C ADDR   0329H   A   
+SET_INC. . . . . .  C ADDR   0491H   A   
+SET_INC_CHECK. . .  C ADDR   04B4H   A   
+SET_INC_END. . . .  C ADDR   04D4H   A   
+SET_INC_NEG. . . .  C ADDR   04BFH   A   
+SET_LOW_POS. . . .  C ADDR   0355H   A   
+SET_POSITIVE . . .  C ADDR   052EH   A   
+SET_SIGN . . . . .  D ADDR   0041H   A   
+SET_TEMP_H . . . .  D ADDR   0040H   A   
+SET_TEMP_L . . . .  D ADDR   003FH   A   
+SET_UPDATE_SIGN. .  C ADDR   051BH   A   
+SIGN . . . . . . .  D ADDR   0036H   A   
+SKIP_READ. . . . .  C ADDR   014BH   A   
+SKIP_VIEW_CNT. . .  C ADDR   0290H   A   
+A51 MACRO ASSEMBLER  THEM                                                                 06/13/2025 17:31:12 PAGE    20
+
+SP . . . . . . . .  D ADDR   0081H   A   
+TEMP_H . . . . . .  D ADDR   0031H   A   
+TEMP_HIGH_H. . . .  D ADDR   0038H   A   
+TEMP_HIGH_L. . . .  D ADDR   0037H   A   
+TEMP_L . . . . . .  D ADDR   0030H   A   
+TEMP_LOW_H . . . .  D ADDR   003AH   A   
+TEMP_LOW_L . . . .  D ADDR   0039H   A   
+TEXT_DEG . . . . .  C ADDR   02ACH   A   
+TEXT_ERROR . . . .  C ADDR   02AEH   A   
+TEXT_NORMAL. . . .  C ADDR   02CBH   A   
+TEXT_SET_HIGH. . .  C ADDR   02BCH   A   
+TEXT_SET_LOW . . .  C ADDR   02C3H   A   
+TEXT_TITLE . . . .  C ADDR   029FH   A   
+VIEW_CNT . . . . .  D ADDR   003EH   A   
+VIEW_MODE. . . . .  D ADDR   003DH   A   
+WAIT_CONV. . . . .  C ADDR   0611H   A   
+WAIT_FOR_RELEASE .  C ADDR   03CDH   A   
+WRITE_BIT. . . . .  C ADDR   05D6H   A   
+WS_END . . . . . .  C ADDR   05B8H   A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)
